@@ -1,5 +1,9 @@
 import numpy as np
 
+def main(control_file):
+    args = read_control_file(control_file)
+    fsim_genetic_drift(**args)
+
 def fsim_genetic_drift(pop_size, selection_coeff, generation_num, 
                        init_mut_num=1, total_site_num=0, var_site_num=0, 
                        poly_site_num=0, fix_site_num=0):
@@ -134,4 +138,9 @@ def weight_sampling_probability(mutant_freq, wildtype_freq, relative_fitness):
 def round_num(a, ndigits):
     n = 10 ** ndigits
     return (a * n * 2 + 1) // 2 / n
+
+if __name__ == '__main__':
+    import sys
+    control_file = sys.arg[1]
+    main(control_file)
 
