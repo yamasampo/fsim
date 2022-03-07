@@ -26,14 +26,16 @@ def fsim_genetic_drift(
     selection_coeff = ns / pop_size
 
     # Check if a file with the same name as a given output file path does not exist.
-    if os.path.isfile(output_path):
-        raise FileExistsError(output_path)
+    out_traj_path = output_path+'.traj.txt'
+    out_summ_path = output_path+'.summary.txt'
+    if os.path.isfile(out_traj_path):
+        raise FileExistsError(out_traj_path)
 
     assert type(output_only_fixation) == bool, \
         'Unknwon value for output_only_fixation argument was found. '\
         'Only "True" or "False" is supported.'
 
-    output_fh = open(output_path, 'a')
+    output_fh = open(out_traj_path, 'a')
 
     write_settings(
         output_fh, 
@@ -136,6 +138,12 @@ def fsim_genetic_drift(
         raise Exception('Please input integers to total_site_num, var_site_num or poly_site_num.')
     
     output_fh.close()
+
+    assert len(mutant_freq_trajectories) == site_count
+    fix_num = len([mut for mut in mutant_freq_trajectories if mut[-1] == 1])
+    with open(out_summ_path, 'w') as f:
+        print(f'total_rep_num: {site_count}', file=f)
+        print(f'fixation_num: {fix_num}', file=f)
 
     return site_count, mutant_freq_trajectories
 
