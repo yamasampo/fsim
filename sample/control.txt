@@ -1,0 +1,17 @@
+
+# Control file for forward simulation of genetic drift
+
+[REQUIRED]
+pop_size = 300
+ns = 0
+init_mut_num = 1
+generation_num = 300
+output_path = ./test_out.txt
+
+
+[OPTIONAL]
+total_site_num = 10
+var_site_num = 0
+poly_site_num = 0
+fix_site_num = 0
+
