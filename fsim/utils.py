@@ -45,7 +45,7 @@ def read_control_file(control_file):
         'var_site_num': int,
         'poly_site_num': int,
         'fix_site_num': int,
-        'get_only_fixation': bool
+        'output_only_fixation': lambda s: True if s == 'True' else (False if s == 'False' else -9)
     }
 
     flattened  = [
@@ -72,6 +72,6 @@ def write_info_to_file(file_handle, separator, *args, **kw_args):
     print('\n'.join(output_lines), file=file_handle)
 
 def write_settings(file_handle, **kw_args):
-    print('[Settings]', file=file_handle)
+    print('[Setting]', file=file_handle)
     write_info_to_file(file_handle, separator=' = ', **kw_args)
 

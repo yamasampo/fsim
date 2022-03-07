@@ -13,4 +13,4 @@ total_site_num = 0
 var_site_num = 0
 poly_site_num = 0
 fix_site_num = 3
-get_only_fixation = True
+output_only_fixation = False

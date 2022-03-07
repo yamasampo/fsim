@@ -14,7 +14,7 @@ def fsim_genetic_drift(
         init_mut_num:int, 
         generation_num:int, 
         output_path:str,
-        get_only_fixation:bool=False,
+        output_only_fixation:bool=False,
         total_site_num=0, 
         var_site_num=0, 
         poly_site_num=0, 
@@ -25,8 +25,13 @@ def fsim_genetic_drift(
 
     selection_coeff = ns / pop_size
 
+    # Check if a file with the same name as a given output file path does not exist.
     if os.path.isfile(output_path):
         raise FileExistsError(output_path)
+
+    assert type(output_only_fixation) == bool, \
+        'Unknwon value for output_only_fixation argument was found. '\
+        'Only "True" or "False" is supported.'
 
     output_fh = open(output_path, 'a')
 
@@ -42,13 +47,13 @@ def fsim_genetic_drift(
             mutant_freq_list = single_rep(
                 pop_size, selection_coeff, init_mut_num, generation_num)
             
+            mutant_freq_trajectories.append(mutant_freq_list)
             site_count += 1
 
-            if get_only_fixation:
+            if output_only_fixation == True:
                 # If a mutation did not go to fixation, do not store.
                 if mutant_freq_list[-1] != 1:
                     continue
-            mutant_freq_trajectories.append(mutant_freq_list)
             
             # Write to file
             res_str = [
@@ -63,15 +68,14 @@ def fsim_genetic_drift(
             mutant_freq_list = single_rep(
                 pop_size, selection_coeff, init_mut_num, generation_num)
             
+            mutant_freq_trajectories.append(mutant_freq_list)
             if mutant_freq_list[-1] > 0:
                 var_site_count += 1
                 
-            if get_only_fixation:
+            if output_only_fixation == True:
                 # If a mutation did not go to fixation, do not store.
                 if mutant_freq_list[-1] != 1:
                     continue
-
-            mutant_freq_trajectories.append(mutant_freq_list)
 
             # Write to file
             res_str = [
@@ -88,16 +92,15 @@ def fsim_genetic_drift(
             mutant_freq_list = single_rep(
                 pop_size, selection_coeff, init_mut_num, generation_num)
             
+            mutant_freq_trajectories.append(mutant_freq_list)
             if mutant_freq_list[-1] > 0:
                 if mutant_freq_list[-1] < 1:
                     poly_site_count += 1
                 
-            if get_only_fixation:
+            if output_only_fixation == True:
                 # If a mutation did not go to fixation, do not store.
                 if mutant_freq_list[-1] != 1:
                     continue
-
-            mutant_freq_trajectories.append(mutant_freq_list)
 
             # Write to file
             res_str = [
@@ -113,14 +116,14 @@ def fsim_genetic_drift(
             mutant_freq_list = single_rep(
                 pop_size, selection_coeff, init_mut_num, generation_num)
             
+            mutant_freq_trajectories.append(mutant_freq_list)
             if mutant_freq_list[-1] == 1:
                 fix_site_count += 1
                 
-            if get_only_fixation:
+            if output_only_fixation == True:
                 # If a mutation did not go to fixation, do not store.
                 if mutant_freq_list[-1] != 1:
                     continue
-            mutant_freq_trajectories.append(mutant_freq_list)
 
             # Write to file
             res_str = [
