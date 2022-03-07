@@ -13,7 +13,8 @@ def fsim_genetic_drift(
         ns:Union[float, int], 
         init_mut_num:int, 
         generation_num:int, 
-        output_path:str, # If given, allele freqs will be output accordingly.
+        output_path:str,
+        get_only_fixation:bool=False,
         total_site_num=0, 
         var_site_num=0, 
         poly_site_num=0, 
@@ -34,12 +35,19 @@ def fsim_genetic_drift(
         pop_size=pop_size, ns=ns, init_mut_num=init_mut_num, 
         generation_num=generation_num, 
     )
-    
+
     print('[Result]', file=output_fh)
     if total_site_num > 0:
         for _ in range(total_site_num):
             mutant_freq_list = single_rep(
                 pop_size, selection_coeff, init_mut_num, generation_num)
+            
+            site_count += 1
+
+            if get_only_fixation:
+                # If a mutation did not go to fixation, do not store.
+                if mutant_freq_list[-1] != 1:
+                    continue
             mutant_freq_trajectories.append(mutant_freq_list)
             
             # Write to file
@@ -48,8 +56,6 @@ def fsim_genetic_drift(
                 for r in mutant_freq_list]
             write_info_to_file(output_fh, '\t', *res_str)
 
-            site_count += 1
-            
     elif var_site_num > 0:
         var_site_count = 0
         
@@ -60,6 +66,11 @@ def fsim_genetic_drift(
             if mutant_freq_list[-1] > 0:
                 var_site_count += 1
                 
+            if get_only_fixation:
+                # If a mutation did not go to fixation, do not store.
+                if mutant_freq_list[-1] != 1:
+                    continue
+
             mutant_freq_trajectories.append(mutant_freq_list)
 
             # Write to file
@@ -81,6 +92,11 @@ def fsim_genetic_drift(
                 if mutant_freq_list[-1] < 1:
                     poly_site_count += 1
                 
+            if get_only_fixation:
+                # If a mutation did not go to fixation, do not store.
+                if mutant_freq_list[-1] != 1:
+                    continue
+
             mutant_freq_trajectories.append(mutant_freq_list)
 
             # Write to file
@@ -100,6 +116,10 @@ def fsim_genetic_drift(
             if mutant_freq_list[-1] == 1:
                 fix_site_count += 1
                 
+            if get_only_fixation:
+                # If a mutation did not go to fixation, do not store.
+                if mutant_freq_list[-1] != 1:
+                    continue
             mutant_freq_trajectories.append(mutant_freq_list)
 
             # Write to file

@@ -44,7 +44,8 @@ def read_control_file(control_file):
         'total_site_num': int,
         'var_site_num': int,
         'poly_site_num': int,
-        'fix_site_num': int
+        'fix_site_num': int,
+        'get_only_fixation': bool
     }
 
     flattened  = [
