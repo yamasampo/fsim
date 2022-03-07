@@ -7,8 +7,8 @@ def read_control_file(control_file):
     # Initialize ConfigParser object
     config = configparser.ConfigParser(
         strict=True,
-        comment_prefixes=('/*', ';'),
-        inline_comment_prefixes=('/*', ';')
+        comment_prefixes=('/*', ';', '#'),
+        inline_comment_prefixes=('/*', ';', '#')
     )
 
     # Parse control file
@@ -71,5 +71,6 @@ def write_info_to_file(file_handle, separator, *args, **kw_args):
     print('\n'.join(output_lines), file=file_handle)
 
 def write_settings(file_handle, **kw_args):
+    print('[Settings]', file=file_handle)
     write_info_to_file(file_handle, separator=' = ', **kw_args)
 

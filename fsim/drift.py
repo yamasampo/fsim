@@ -35,6 +35,7 @@ def fsim_genetic_drift(
         generation_num=generation_num, 
     )
     
+    print('[Result]', file=output_fh)
     if total_site_num > 0:
         for _ in range(total_site_num):
             mutant_freq_list = single_rep(
@@ -45,7 +46,7 @@ def fsim_genetic_drift(
             res_str = [
                 '0' if r == 0 else str(round_num(r, 5)) 
                 for r in mutant_freq_list]
-            write_info_to_file(output_fh, separator='\t', *res_str)
+            write_info_to_file(output_fh, '\t', *res_str)
 
             site_count += 1
             
@@ -65,7 +66,7 @@ def fsim_genetic_drift(
             res_str = [
                 '0' if r == 0 else str(round_num(r, 5)) 
                 for r in mutant_freq_list]
-            write_info_to_file(output_fh, separator='\t', *res_str)
+            write_info_to_file(output_fh, '\t', *res_str)
 
             site_count += 1
             
@@ -86,7 +87,7 @@ def fsim_genetic_drift(
             res_str = [
                 '0' if r == 0 else str(round_num(r, 5)) 
                 for r in mutant_freq_list]
-            write_info_to_file(output_fh, separator='\t', *res_str)
+            write_info_to_file(output_fh, '\t', *res_str)
             site_count += 1
             
     elif fix_site_num > 0:
@@ -105,12 +106,14 @@ def fsim_genetic_drift(
             res_str = [
                 '0' if r == 0 else str(round_num(r, 5)) 
                 for r in mutant_freq_list]
-            write_info_to_file(output_fh, separator='\t', *res_str)
+            write_info_to_file(output_fh, '\t', *res_str)
             site_count += 1
         
     else:
         raise Exception('Please input integers to total_site_num, var_site_num or poly_site_num.')
-        
+    
+    output_fh.close()
+
     return site_count, mutant_freq_trajectories
 
 def single_rep(pop_size, selection_coeff, init_mut_num, generation_num=0):
@@ -191,6 +194,6 @@ def round_num(a, ndigits):
 
 if __name__ == '__main__':
     import sys
-    control_file = sys.arg[1]
+    control_file = sys.argv[1]
     main(control_file)
 
