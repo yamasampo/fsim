@@ -1,21 +1,52 @@
 import numpy as np
 
-def main(control_file):
-    args = read_control_file(control_file)
-    fsim_genetic_drift(**args)
+import os
+from typing import Union
+from fsim.utils import read_control_file, write_settings, write_info_to_file
 
-def fsim_genetic_drift(pop_size, selection_coeff, generation_num, 
-                       init_mut_num=1, total_site_num=0, var_site_num=0, 
-                       poly_site_num=0, fix_site_num=0):
+def main(control_file):
+    kw_args = read_control_file(control_file)
+    fsim_genetic_drift(**kw_args)
+
+def fsim_genetic_drift(
+        pop_size:int, 
+        ns:Union[float, int], 
+        init_mut_num:int, 
+        generation_num:int, 
+        output_path:str, # If given, allele freqs will be output accordingly.
+        total_site_num=0, 
+        var_site_num=0, 
+        poly_site_num=0, 
+        fix_site_num=0
+    ):
     mutant_freq_trajectories = []
     site_count = 0
+
+    selection_coeff = ns / pop_size
+
+    if os.path.isfile(output_path):
+        raise FileExistsError(output_path)
+
+    output_fh = open(output_path, 'a')
+
+    write_settings(
+        output_fh, 
+        pop_size=pop_size, ns=ns, init_mut_num=init_mut_num, 
+        generation_num=generation_num, 
+    )
     
     if total_site_num > 0:
         for _ in range(total_site_num):
-            mutant_freq_trajectories.append(
-                single_rep(
-                    pop_size, selection_coeff, init_mut_num, generation_num)
-            )
+            mutant_freq_list = single_rep(
+                pop_size, selection_coeff, init_mut_num, generation_num)
+            mutant_freq_trajectories.append(mutant_freq_list)
+            
+            # Write to file
+            res_str = [
+                '0' if r == 0 else str(round_num(r, 5)) 
+                for r in mutant_freq_list]
+            write_info_to_file(output_fh, separator='\t', *res_str)
+
             site_count += 1
             
     elif var_site_num > 0:
@@ -29,6 +60,13 @@ def fsim_genetic_drift(pop_size, selection_coeff, generation_num,
                 var_site_count += 1
                 
             mutant_freq_trajectories.append(mutant_freq_list)
+
+            # Write to file
+            res_str = [
+                '0' if r == 0 else str(round_num(r, 5)) 
+                for r in mutant_freq_list]
+            write_info_to_file(output_fh, separator='\t', *res_str)
+
             site_count += 1
             
     elif poly_site_num > 0:
@@ -43,6 +81,12 @@ def fsim_genetic_drift(pop_size, selection_coeff, generation_num,
                     poly_site_count += 1
                 
             mutant_freq_trajectories.append(mutant_freq_list)
+
+            # Write to file
+            res_str = [
+                '0' if r == 0 else str(round_num(r, 5)) 
+                for r in mutant_freq_list]
+            write_info_to_file(output_fh, separator='\t', *res_str)
             site_count += 1
             
     elif fix_site_num > 0:
@@ -56,6 +100,12 @@ def fsim_genetic_drift(pop_size, selection_coeff, generation_num,
                 fix_site_count += 1
                 
             mutant_freq_trajectories.append(mutant_freq_list)
+
+            # Write to file
+            res_str = [
+                '0' if r == 0 else str(round_num(r, 5)) 
+                for r in mutant_freq_list]
+            write_info_to_file(output_fh, separator='\t', *res_str)
             site_count += 1
         
     else:
