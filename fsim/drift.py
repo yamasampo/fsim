@@ -13,7 +13,7 @@ def fsim_genetic_drift(
         ns:Union[float, int], 
         init_mut_num:int, 
         generation_num:int, 
-        output_path:str,
+        output_path_prefix:str,
         output_only_fixation:bool=False,
         total_site_num=0, 
         var_site_num=0, 
@@ -25,11 +25,7 @@ def fsim_genetic_drift(
 
     selection_coeff = ns / pop_size
 
-    # Check if a file with the same name as a given output file path does not exist.
-    out_traj_path = output_path+'.traj.txt'
-    out_summ_path = output_path+'.summary.txt'
-    if os.path.isfile(out_traj_path):
-        raise FileExistsError(out_traj_path)
+    out_traj_path, out_summ_path = get_output_file_paths(output_path_prefix)
 
     assert type(output_only_fixation) == bool, \
         'Unknwon value for output_only_fixation argument was found. '\
@@ -145,6 +141,18 @@ def fsim_genetic_drift(
         print(f'fixation_num: {fix_num}', file=f)
 
     return site_count, mutant_freq_trajectories
+
+def get_output_file_paths(output_path_prefix):
+     # Check if a file with the same name as a given output file path does not exist.
+    out_traj_path = output_path_prefix+'.traj.txt'
+    out_summ_path = output_path_prefix+'.summary.txt'
+    if os.path.isfile(out_traj_path):
+        raise FileExistsError(out_traj_path)
+    if os.path.isfile(out_summ_path):
+        raise FileExistsError(out_summ_path)
+
+    return out_traj_path, out_summ_path
+
 
 def single_rep(pop_size, selection_coeff, init_mut_num, generation_num=0):
     """ Returns trajectory of mutant allele frequency. 
