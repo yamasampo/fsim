@@ -15,6 +15,7 @@ def fsim_genetic_drift(
         generation_num:int, 
         output_path_prefix:str,
         output_only_fixation:bool=False,
+        implementation='binomial',
         total_site_num=0, 
         var_site_num=0, 
         poly_site_num=0, 
@@ -86,7 +87,8 @@ def fsim_genetic_drift(
     if total_site_num > 0:
         for _ in range(total_site_num):
             mutant_freq_list = single_rep(
-                pop_size, selection_coeff, init_mut_num, generation_num)
+                pop_size, selection_coeff, init_mut_num, generation_num, 
+                implementation)
             
             mutant_freq_trajectories.append(mutant_freq_list)
             site_count += 1
@@ -107,7 +109,8 @@ def fsim_genetic_drift(
         
         while var_site_count < var_site_num:
             mutant_freq_list = single_rep(
-                pop_size, selection_coeff, init_mut_num, generation_num)
+                pop_size, selection_coeff, init_mut_num, generation_num, 
+                implementation)
             
             mutant_freq_trajectories.append(mutant_freq_list)
             site_count += 1
@@ -130,7 +133,8 @@ def fsim_genetic_drift(
         
         while poly_site_count < poly_site_num:
             mutant_freq_list = single_rep(
-                pop_size, selection_coeff, init_mut_num, generation_num)
+                pop_size, selection_coeff, init_mut_num, generation_num, 
+                implementation)
             
             mutant_freq_trajectories.append(mutant_freq_list)
             site_count += 1
@@ -154,7 +158,8 @@ def fsim_genetic_drift(
         
         while fix_site_count < fix_site_num:
             mutant_freq_list = single_rep(
-                pop_size, selection_coeff, init_mut_num, generation_num)
+                pop_size, selection_coeff, init_mut_num, generation_num, 
+                implementation)
             
             mutant_freq_trajectories.append(mutant_freq_list)
             site_count += 1
