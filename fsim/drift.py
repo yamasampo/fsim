@@ -112,7 +112,6 @@ def fsim_genetic_drift(
                 pop_size, selection_coeff, init_mut_num, generation_num, 
                 implementation)
             
-            mutant_freq_trajectories.append(mutant_freq_list)
             site_count += 1
             if mutant_freq_list[-1] > 0:
                 var_site_count += 1
@@ -121,6 +120,8 @@ def fsim_genetic_drift(
                 # If a mutation did not go to fixation, do not store.
                 if mutant_freq_list[-1] != 1:
                     continue
+
+            mutant_freq_trajectories.append(mutant_freq_list)
 
             # Write to file
             res_str = [
@@ -136,7 +137,6 @@ def fsim_genetic_drift(
                 pop_size, selection_coeff, init_mut_num, generation_num, 
                 implementation)
             
-            mutant_freq_trajectories.append(mutant_freq_list)
             site_count += 1
             if mutant_freq_list[-1] > 0:
                 if mutant_freq_list[-1] < 1:
@@ -146,6 +146,8 @@ def fsim_genetic_drift(
                 # If a mutation did not go to fixation, do not store.
                 if mutant_freq_list[-1] != 1:
                     continue
+
+            mutant_freq_trajectories.append(mutant_freq_list)
 
             # Write to file
             res_str = [
@@ -161,7 +163,6 @@ def fsim_genetic_drift(
                 pop_size, selection_coeff, init_mut_num, generation_num, 
                 implementation)
             
-            mutant_freq_trajectories.append(mutant_freq_list)
             site_count += 1
             if mutant_freq_list[-1] == 1:
                 fix_site_count += 1
@@ -170,6 +171,8 @@ def fsim_genetic_drift(
                 # If a mutation did not go to fixation, do not store.
                 if mutant_freq_list[-1] != 1:
                     continue
+
+            mutant_freq_trajectories.append(mutant_freq_list)
 
             # Write to file
             res_str = [
@@ -181,8 +184,8 @@ def fsim_genetic_drift(
         raise Exception('Please input integers to total_site_num, var_site_num or poly_site_num.')
     
     output_fh.close()
-
-    assert len(mutant_freq_trajectories) == site_count
+    if output_only_fixation == False:
+        assert len(mutant_freq_trajectories) == site_count
     fix_num = len([mut for mut in mutant_freq_trajectories if mut[-1] == 1])
     with open(out_summ_path, 'w') as f:
         print(f'total_rep_num: {site_count}', file=f)
