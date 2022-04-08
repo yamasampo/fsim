@@ -20,25 +20,68 @@ def fsim_genetic_drift(
         poly_site_num=0, 
         fix_site_num=0
     ):
+    """ Returns a list of allele frequency trajectories. `output_only_fixation`
+    will control whether the function outputs trajectories for mutations that
+    went to fixation. 
+
+    Parameters
+    ----------
+    pop_size: int
+        Population size (number of individuals in a population).
+    ns: float or int
+        Population size-scaled selection coefficient. 
+    init_mut_num: int
+        Number of mutant alleles in a population at the initial generation. 
+    generation_num: int
+        Number of generations. If 0 is given, a simulation will be continued 
+        until a mutation goes to fixation or is lost from a population. 
+    output_path_prefix: str
+        A string text that specifies the output file paths. Two files, 
+        "<output_path_prefix>.traj.txt" and "<output_path_prefix>.summ.txt" will 
+        be newly generated. 
+    output_only_fixation: bool
+        Control whether or not write trajectories for mutations that went to
+        fixations into an output file. 
+
+    Returns
+    -------
+    site_count: int
+        Number of simulation runs. 
+    mutant_freq_trajectories: list
+        A list of allele frequency trajectories for all the simulated mutations.    
+
+    """
+    # Initialize a list of allele frequency trajectories
+    # Trajectory of allele frequency for every simulation replicate will be 
+    # added to this list
     mutant_freq_trajectories = []
+
+    # Initialize number of simulated sites (replicates)
     site_count = 0
 
+    # Calculate selection coefficient
     selection_coeff = ns / pop_size
 
+    # Get output file paths
     out_traj_path, out_summ_path = get_output_file_paths(output_path_prefix)
 
+    # Check data type of output_only_fixation
     assert type(output_only_fixation) == bool, \
         'Unknwon value for output_only_fixation argument was found. '\
         'Only "True" or "False" is supported.'
 
+    # Open trajectory output file
+    # Simulated frequency trajectory will be consequently added to the file.
     output_fh = open(out_traj_path, 'a')
 
+    # Output setting
     write_settings(
         output_fh, 
         pop_size=pop_size, ns=ns, init_mut_num=init_mut_num, 
         generation_num=generation_num, 
     )
-
+    
+    # "[Result]" defines a block for simulation results
     print('[Result]', file=output_fh)
     if total_site_num > 0:
         for _ in range(total_site_num):
@@ -159,8 +202,20 @@ def single_rep(pop_size, selection_coeff, init_mut_num, generation_num=0):
 
     Parameters
     ----------
+    pop_size: int
+        Population size (number of individuals in a population).
+    selection_coeff: float or int
+        Selection coefficient. Individuals with mutant and wildtype alleles have
+        fitness difference by selection coefficient. 
+    init_mut_num: int
+        Number of mutant individuals in a population at the initial generation. 
     generation_num: int (default: 0)
         Stops simulation if generation_num greater than 0 is given. 
+
+    Return
+    ------
+    mutant_freq_list: list
+        A trajectory of mutant allele frequency over time. 
 
     """
     relative_fitness = {
@@ -178,15 +233,15 @@ def single_rep(pop_size, selection_coeff, init_mut_num, generation_num=0):
         offsprings = [] # 0 is wildtype and 1 is mutant
 
         assert mutant_freq + wildtype_freq == 1
-        _, wildtype_sample_prob = weight_sampling_probability(
+        mutant_freq_weighted_corr = calculate_expected_next_gen_mutant_freq(
             mutant_freq, wildtype_freq, relative_fitness)
 
         # Construct a population on the next generation
         while len(offsprings) < pop_size:
-            if np.random.rand() < wildtype_sample_prob:
-                offspring = 0
-            else:
+            if np.random.rand() < mutant_freq_weighted_corr:
                 offspring = 1
+            else:
+                offspring = 0
 
             offsprings.append(offspring)
             
@@ -211,7 +266,12 @@ def single_rep(pop_size, selection_coeff, init_mut_num, generation_num=0):
         
     return mutant_freq_list
 
-def weight_sampling_probability(mutant_freq, wildtype_freq, relative_fitness):
+def calculate_expected_next_gen_mutant_freq(
+        mutant_freq, wildtype_freq, relative_fitness):
+    """ Returns an expected frequency of mutant alleles in a population at the 
+    next generation.
+    """
+
     wildtype_freq_weighted = wildtype_freq * relative_fitness[0]
     mutant_freq_weighted = mutant_freq * relative_fitness[1]
 
@@ -221,10 +281,11 @@ def weight_sampling_probability(mutant_freq, wildtype_freq, relative_fitness):
     wildtype_freq_weighted_corr = round_num(wildtype_freq_weighted / \
         (wildtype_freq_weighted + mutant_freq_weighted), 5)
 
+    # Make sure to sum to 1
     assert mutant_freq_weighted_corr + wildtype_freq_weighted_corr == 1, \
         f"{mutant_freq_weighted_corr} and {wildtype_freq_weighted_corr}"
 
-    return mutant_freq_weighted_corr, wildtype_freq_weighted_corr
+    return mutant_freq_weighted_corr
 
 def round_num(a, ndigits):
     n = 10 ** ndigits
