@@ -197,7 +197,10 @@ def get_output_file_paths(output_path_prefix):
     return out_traj_path, out_summ_path
 
 
-def single_rep(pop_size, selection_coeff, init_mut_num, generation_num=0):
+def single_rep(
+        pop_size, selection_coeff, init_mut_num, 
+        generation_num=0, implementation='binomial'
+    ):
     """ Returns trajectory of mutant allele frequency. 
 
     Parameters
@@ -230,31 +233,16 @@ def single_rep(pop_size, selection_coeff, init_mut_num, generation_num=0):
     gen_num = 0
 
     while mutant_freq > 0 and mutant_freq < 1:
-        offsprings = [] # 0 is wildtype and 1 is mutant
-
         assert mutant_freq + wildtype_freq == 1
-        mutant_freq_weighted_corr = calculate_expected_next_gen_mutant_freq(
+        exp_mutant_freq = calculate_expected_next_gen_mutant_freq(
             mutant_freq, wildtype_freq, relative_fitness)
 
-        # Construct a population on the next generation
-        while len(offsprings) < pop_size:
-            if np.random.rand() < mutant_freq_weighted_corr:
-                offspring = 1
-            else:
-                offspring = 0
-
-            offsprings.append(offspring)
-            
-            # NOTE: wildtype_sample_prob is already weighted by relative fitness.
-            # if np.random.rand() < relative_fitness[offspring]:
-            #     offsprings.append(offspring)
-                
-        # Check if the number of offsprings is the same value as population size
-        assert len(offsprings) == pop_size
+        mutant_count = random_sampling(
+            pop_size, exp_mutant_freq, implementation)
         
         # Calculate allele frequency
-        mutant_freq = offsprings.count(1) / pop_size
-        wildtype_freq = offsprings.count(0) / pop_size
+        mutant_freq = mutant_count / pop_size
+        wildtype_freq = (pop_size - mutant_count) / pop_size
         
         mutant_freq_list.append(mutant_freq)
         gen_num += 1
@@ -265,6 +253,29 @@ def single_rep(pop_size, selection_coeff, init_mut_num, generation_num=0):
                 return mutant_freq_list
         
     return mutant_freq_list
+
+def random_sampling(pop_size, exp_mutant_freq, implementation):
+    if implementation == 'binomial':
+        return np.random.binomial(pop_size, exp_mutant_freq)
+
+    elif implementation == 'exhaustive':
+        offsprings = []
+
+        # Construct a population on the next generation
+        while len(offsprings) < pop_size:
+            if np.random.rand() < exp_mutant_freq:
+                offspring = 1 # mutant allele is sampled for next gen
+            else:
+                offspring = 0 # wildtype allele is sampled for next gen
+
+            offsprings.append(offspring)
+                
+        # Check if the number of offsprings is the same value as population size
+        assert len(offsprings) == pop_size
+        return offsprings.count(1)
+
+    raise ValueError(f'Unknown value for `implementation`: {implementation}. '\
+        'Only "binomial" or "exhaustive" are supported.')
 
 def calculate_expected_next_gen_mutant_freq(
         mutant_freq, wildtype_freq, relative_fitness):
