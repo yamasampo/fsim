@@ -2,6 +2,7 @@
 import os
 import configparser
 from warnings import warn
+from fsim import __version__
 
 def read_control_file(control_file):
     """ Read a control file and returns a dictionary of arguments for the 
@@ -86,6 +87,7 @@ def write_info_to_file(file_handle, separator, *args, **kw_args):
     print('\n'.join(output_lines), file=file_handle)
 
 def write_settings(file_handle, **kw_args):
+    print(f'Created by fsim package (version {__version__})', file=file_handle)
     print('[Setting]', file=file_handle)
     write_info_to_file(file_handle, separator=' = ', **kw_args)
 
