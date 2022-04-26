@@ -4,6 +4,19 @@ import configparser
 from warnings import warn
 
 def read_control_file(control_file):
+    """ Read a control file and returns a dictionary of arguments for the 
+    forward simulation. 
+    
+    Parameter
+    ---------
+    control_file: str
+        A path to control file
+
+    Return
+    ------
+    flattened: dict
+        A dictionary of arguments.
+    """
     # Initialize ConfigParser object
     config = configparser.ConfigParser(
         strict=True,
@@ -45,7 +58,8 @@ def read_control_file(control_file):
         'var_site_num': int,
         'poly_site_num': int,
         'fix_site_num': int,
-        'output_only_fixation': lambda s: True if s == 'True' else (False if s == 'False' else -9)
+        'output_only_fixation': lambda s: True if s == 'True' else \
+            (False if s == 'False' else -9)
     }
 
     flattened  = [
