@@ -60,6 +60,9 @@ def fsim_genetic_drift(
     # Initialize number of simulated sites (replicates)
     site_count = 0
 
+    # Calculate selection coefficient
+    selection_coeff = ns / pop_size
+
     # Get output file paths
     out_traj_path, out_summ_path = get_output_file_paths(output_path_prefix)
 
@@ -79,20 +82,12 @@ def fsim_genetic_drift(
         generation_num=generation_num, 
     )
     
-    # Calculate relative fitness
-    selection_coeff = ns / pop_size
-    relative_fitness = {
-        0: 1 / (2+selection_coeff), # wild type
-        1: (1+selection_coeff) / (2+selection_coeff) # mutant
-    }
-    exp_freq_d = get_expected_next_gen_freqs_dict(pop_size, relative_fitness)
-
     # "[Result]" defines a block for simulation results
     print('[Result]', file=output_fh)
     if total_site_num > 0:
         for _ in range(total_site_num):
             mutant_freq_list = single_rep(
-                pop_size, init_mut_num, exp_freq_d, generation_num, 
+                pop_size, selection_coeff, init_mut_num, generation_num, 
                 implementation)
             
             mutant_freq_trajectories.append(mutant_freq_list)
@@ -114,7 +109,7 @@ def fsim_genetic_drift(
         
         while var_site_count < var_site_num:
             mutant_freq_list = single_rep(
-                pop_size, init_mut_num, exp_freq_d, generation_num, 
+                pop_size, selection_coeff, init_mut_num, generation_num, 
                 implementation)
             
             site_count += 1
@@ -139,7 +134,7 @@ def fsim_genetic_drift(
         
         while poly_site_count < poly_site_num:
             mutant_freq_list = single_rep(
-                pop_size, init_mut_num, exp_freq_d, generation_num, 
+                pop_size, selection_coeff, init_mut_num, generation_num, 
                 implementation)
             
             site_count += 1
@@ -165,7 +160,7 @@ def fsim_genetic_drift(
         
         while fix_site_count < fix_site_num:
             mutant_freq_list = single_rep(
-                pop_size, init_mut_num, exp_freq_d, generation_num, 
+                pop_size, selection_coeff, init_mut_num, generation_num, 
                 implementation)
             
             site_count += 1
@@ -211,7 +206,7 @@ def get_output_file_paths(output_path_prefix):
 
 
 def single_rep(
-        pop_size, init_mut_num, exp_mutant_freqs:dict,
+        pop_size, selection_coeff, init_mut_num, 
         generation_num=0, implementation='binomial'
     ):
     """ Returns trajectory of mutant allele frequency. 
@@ -234,6 +229,10 @@ def single_rep(
         A trajectory of mutant allele frequency over time. 
 
     """
+    relative_fitness = {
+        0: 1 / (2+selection_coeff), # wild type
+        1: (1+selection_coeff) / (2+selection_coeff) # mutant
+    }
     mutant_freq = init_mut_num / pop_size
     wildtype_freq = (pop_size - init_mut_num) / pop_size
 
@@ -243,7 +242,8 @@ def single_rep(
 
     while mutant_freq > 0 and mutant_freq < 1:
         assert mutant_freq + wildtype_freq == 1
-        exp_mutant_freq = exp_mutant_freqs[int(mutant_freq*pop_size)]
+        exp_mutant_freq = calculate_expected_next_gen_mutant_freq(
+            mutant_freq, wildtype_freq, relative_fitness)
 
         mutant_count = random_sampling(
             pop_size, exp_mutant_freq, implementation)
@@ -284,17 +284,6 @@ def random_sampling(pop_size, exp_mutant_freq, implementation):
 
     raise ValueError(f'Unknown value for `implementation`: {implementation}. '\
         'Only "binomial" or "exhaustive" are supported.')
-
-def get_expected_next_gen_freqs_dict(pop_size, relative_fitness):
-    exp_freq_d = {}
-    for mutant_count in range(0, pop_size+1):
-        wildtype_count = pop_size - mutant_count
-        exp_mut_freq = calculate_expected_next_gen_mutant_freq(
-            mutant_count/pop_size, wildtype_count/pop_size, relative_fitness)
-
-        exp_freq_d[mutant_count] = exp_mut_freq
-
-    return exp_freq_d
 
 def calculate_expected_next_gen_mutant_freq(
         mutant_freq, wildtype_freq, relative_fitness):
