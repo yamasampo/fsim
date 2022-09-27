@@ -83,9 +83,10 @@ def fsim_genetic_drift(
     # Calculate relative fitness
     selection_coeff = ns / pop_size
     relative_fitness = {
-        0: 1 / (2+selection_coeff), # wild type
-        1: (1+selection_coeff) / (2+selection_coeff) # mutant
+        0: (1-selection_coeff/2) / 2, # wild type
+        1: (1+selection_coeff/2) / 2 # mutant
     }
+    print(relative_fitness)
     exp_freq_d = get_expected_next_gen_freqs_dict(pop_size, relative_fitness)
 
     # "[Result]" defines a block for simulation results
@@ -248,12 +249,12 @@ def single_rep(
     wildtype_freq = (pop_size - init_mut_num) / pop_size
 
     mutant_freq_list = [mutant_freq]
-
+    mutant_count = init_mut_num
     gen_num = 0
 
     while mutant_freq > 0 and mutant_freq < 1:
         assert mutant_freq + wildtype_freq == 1
-        exp_mutant_freq = exp_mutant_freqs[int(mutant_freq*pop_size)]
+        exp_mutant_freq = exp_mutant_freqs[mutant_count]
 
         mutant_count = random_sampling(
             pop_size, exp_mutant_freq, implementation)
