@@ -3,14 +3,15 @@
 
 [REQUIRED]
 pop_size = 300
-ns = 0
-init_mut_num = 1
+ns = -3
+init_mut_num = 150
 generation_num = 0
-output_path = ./test_out.txt
+output_path_prefix = ./test_out
 
 [OPTIONAL]
-total_site_num = 0
+total_site_num = 0 
 var_site_num = 0
 poly_site_num = 0
-fix_site_num = 3
+fix_site_num = 1000
 output_only_fixation = False
+implementation = binomial
