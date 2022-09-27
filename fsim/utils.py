@@ -1,7 +1,7 @@
 
-import os
 import configparser
 from warnings import warn
+from collections import namedtuple
 
 def read_control_file(control_file):
     # Initialize ConfigParser object
@@ -56,6 +56,45 @@ def read_control_file(control_file):
     ]
 
     return dict(flattened)
+
+SimulationResult = namedtuple('SimulationResult', ['setting', 'result', 'total_run_num'])
+
+def read_data(file_path, fix_only=True):
+    setting_d = {}
+    result = []
+    run_count = 0
+    
+    with open(file_path, 'r') as f:
+        for l in f:
+            if l.startswith('['):
+                section = cut_square_parenthesis(l[:-1])
+            else:
+                if section == 'Setting':
+                    key, value = get_argument(l[:-1])
+                    setting_d[key] = value
+                
+                elif section == 'Result':
+                    run_count += 1
+                    values = get_values(l[:-1])
+                    
+                    if fix_only:
+                        if values[-1] == 1:
+                            result.append(values)
+                    else:
+                        result.append(values)
+                    
+    return SimulationResult(setting_d, result, run_count)
+
+def cut_square_parenthesis(s):
+    return s.split('[')[1].split(']')[0]
+
+def get_argument(s):
+    parts = s.split('=')
+    assert len(parts) == 2
+    return [part.strip() for part in parts]
+
+def get_values(s):
+    return [float(v) for v in s.split()]
 
 def write_info_to_file(file_handle, separator, *args, **kw_args):
     """ Write arguments or keyword arguments to a file. Values will be 
