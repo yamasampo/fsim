@@ -9,17 +9,17 @@ def main(control_file):
     fsim_genetic_drift(**kw_args)
 
 def fsim_genetic_drift(
-        pop_size:int, 
-        ns:Union[float, int], 
-        init_mut_num:int, 
-        generation_num:int, 
-        output_path_prefix:str,
-        output_only_fixation:bool=False,
-        implementation='binomial',
-        total_site_num=0, 
-        var_site_num=0, 
-        poly_site_num=0, 
-        fix_site_num=0
+        pop_size: int, 
+        ns: Union[float, int], 
+        init_mut_num: int, 
+        generation_num: int, 
+        output_path_prefix: str,
+        output_only_fixation: bool = False,
+        implementation: str = 'binomial',
+        total_site_num = 0, 
+        var_site_num = 0, 
+        poly_site_num = 0, 
+        fix_site_num = 0
     ):
     """ Returns a list of allele frequency trajectories. `output_only_fixation`
     will control whether the function outputs trajectories for mutations that
@@ -55,7 +55,7 @@ def fsim_genetic_drift(
     # Initialize a list of allele frequency trajectories
     # Trajectory of allele frequency for every simulation replicate will be 
     # added to this list
-    mutant_freq_trajectories = []
+    # mutant_freq_trajectories = []
 
     # Initialize number of simulated sites (replicates)
     site_count = 0
@@ -77,6 +77,7 @@ def fsim_genetic_drift(
         output_fh, 
         pop_size=pop_size, ns=ns, init_mut_num=init_mut_num, 
         generation_num=generation_num, 
+        output_only_fixation=output_only_fixation
     )
     
     # Calculate relative fitness
@@ -90,13 +91,17 @@ def fsim_genetic_drift(
     # "[Result]" defines a block for simulation results
     print('[Result]', file=output_fh)
     if total_site_num > 0:
+        fix_site_count = 0
+
         for _ in range(total_site_num):
             mutant_freq_list = single_rep(
                 pop_size, init_mut_num, exp_freq_d, generation_num, 
                 implementation)
             
-            mutant_freq_trajectories.append(mutant_freq_list)
+            # mutant_freq_trajectories.append(mutant_freq_list)
             site_count += 1
+            if mutant_freq_list[-1] == 1:
+                fix_site_count += 1
 
             if output_only_fixation == True:
                 # If a mutation did not go to fixation, do not store.
@@ -111,16 +116,19 @@ def fsim_genetic_drift(
 
     elif var_site_num > 0:
         var_site_count = 0
+        fix_site_count = 0
         
         while var_site_count < var_site_num:
             mutant_freq_list = single_rep(
                 pop_size, init_mut_num, exp_freq_d, generation_num, 
                 implementation)
             
-            mutant_freq_trajectories.append(mutant_freq_list)
+            # mutant_freq_trajectories.append(mutant_freq_list)
             site_count += 1
             if mutant_freq_list[-1] > 0:
                 var_site_count += 1
+                if mutant_freq_list[-1] == 1:
+                    fix_site_count += 1
                 
             if output_only_fixation == True:
                 # If a mutation did not go to fixation, do not store.
@@ -135,17 +143,21 @@ def fsim_genetic_drift(
             
     elif poly_site_num > 0:
         poly_site_count = 0
+        fix_site_count = 0
         
         while poly_site_count < poly_site_num:
             mutant_freq_list = single_rep(
                 pop_size, init_mut_num, exp_freq_d, generation_num, 
                 implementation)
             
-            mutant_freq_trajectories.append(mutant_freq_list)
+            # mutant_freq_trajectories.append(mutant_freq_list)
             site_count += 1
             if mutant_freq_list[-1] > 0:
-                if mutant_freq_list[-1] < 1:
+                if mutant_freq_list[-1] == 1:
+                    fix_site_count += 1
+                elif mutant_freq_list[-1] < 1:
                     poly_site_count += 1
+                
                 
             if output_only_fixation == True:
                 # If a mutation did not go to fixation, do not store.
@@ -166,7 +178,7 @@ def fsim_genetic_drift(
                 pop_size, init_mut_num, exp_freq_d, generation_num, 
                 implementation)
             
-            mutant_freq_trajectories.append(mutant_freq_list)
+            # mutant_freq_trajectories.append(mutant_freq_list)
             site_count += 1
             if mutant_freq_list[-1] == 1:
                 fix_site_count += 1
@@ -187,13 +199,14 @@ def fsim_genetic_drift(
     
     output_fh.close()
 
-    assert len(mutant_freq_trajectories) == site_count
-    fix_num = len([mut for mut in mutant_freq_trajectories if mut[-1] == 1])
+    # assert len(mutant_freq_trajectories) == site_count
+    # fix_num = len([mut for mut in mutant_freq_trajectories if mut[-1] == 1])
     with open(out_summ_path, 'w') as f:
         print(f'total_rep_num: {site_count}', file=f)
-        print(f'fixation_num: {fix_num}', file=f)
+        print(f'fixation_num: {fix_site_count}', file=f)
 
-    return site_count, mutant_freq_trajectories
+    # return site_count, mutant_freq_trajectories
+    return site_count
 
 def get_output_file_paths(output_path_prefix):
      # Check if a file with the same name as a given output file path does not exist.
@@ -208,8 +221,8 @@ def get_output_file_paths(output_path_prefix):
 
 
 def single_rep(
-        pop_size, init_mut_num, exp_mutant_freqs:dict,
-        generation_num=0, implementation='binomial'
+        pop_size: int, init_mut_num: int, exp_mutant_freqs: dict,
+        generation_num: int = 0, implementation: str = 'binomial'
     ):
     """ Returns trajectory of mutant allele frequency. 
 
@@ -259,7 +272,7 @@ def single_rep(
         
     return mutant_freq_list
 
-def random_sampling(pop_size, exp_mutant_freq, implementation):
+def random_sampling(pop_size: int, exp_mutant_freq: float, implementation: str):
     if implementation == 'binomial':
         return np.random.binomial(pop_size, exp_mutant_freq)
 
@@ -282,7 +295,7 @@ def random_sampling(pop_size, exp_mutant_freq, implementation):
     raise ValueError(f'Unknown value for `implementation`: {implementation}. '\
         'Only "binomial" or "exhaustive" are supported.')
 
-def get_expected_next_gen_freqs_dict(pop_size, relative_fitness):
+def get_expected_next_gen_freqs_dict(pop_size: int, relative_fitness: float):
     exp_freq_d = {}
     for mutant_count in range(0, pop_size+1):
         wildtype_count = pop_size - mutant_count
@@ -294,7 +307,7 @@ def get_expected_next_gen_freqs_dict(pop_size, relative_fitness):
     return exp_freq_d
 
 def calculate_expected_next_gen_mutant_freq(
-        mutant_freq, wildtype_freq, relative_fitness):
+        mutant_freq: float, wildtype_freq: float, relative_fitness: float):
     """ Returns an expected frequency of mutant alleles in a population at the 
     next generation.
     """
@@ -314,7 +327,7 @@ def calculate_expected_next_gen_mutant_freq(
 
     return mutant_freq_weighted_corr
 
-def round_num(a, ndigits):
+def round_num(a: Union[int, float], ndigits: int):
     n = 10 ** ndigits
     return (a * n * 2 + 1) // 2 / n
 
