@@ -1,7 +1,9 @@
-import numpy as np
 
 import os
+import numpy as np
 from typing import Union
+
+from fsim import __version__
 from fsim.utils import read_control_file, write_settings, write_info_to_file
 
 def main(control_file):
@@ -88,6 +90,8 @@ def fsim_genetic_drift(
     }
     print(relative_fitness)
     exp_freq_d = get_expected_next_gen_freqs_dict(pop_size, relative_fitness)
+    
+    generation_to_fixation = []
 
     # "[Result]" defines a block for simulation results
     print('[Result]', file=output_fh)
@@ -103,6 +107,7 @@ def fsim_genetic_drift(
             site_count += 1
             if mutant_freq_list[-1] == 1:
                 fix_site_count += 1
+                generation_to_fixation.append(len(mutant_freq_list)-1)
 
             if output_only_fixation == True:
                 # If a mutation did not go to fixation, do not store.
@@ -130,6 +135,7 @@ def fsim_genetic_drift(
                 var_site_count += 1
                 if mutant_freq_list[-1] == 1:
                     fix_site_count += 1
+                    generation_to_fixation.append(len(mutant_freq_list)-1)
                 
             if output_only_fixation == True:
                 # If a mutation did not go to fixation, do not store.
@@ -156,6 +162,7 @@ def fsim_genetic_drift(
             if mutant_freq_list[-1] > 0:
                 if mutant_freq_list[-1] == 1:
                     fix_site_count += 1
+                    generation_to_fixation.append(len(mutant_freq_list)-1)
                 elif mutant_freq_list[-1] < 1:
                     poly_site_count += 1
                 
@@ -183,6 +190,7 @@ def fsim_genetic_drift(
             site_count += 1
             if mutant_freq_list[-1] == 1:
                 fix_site_count += 1
+                generation_to_fixation.append(len(mutant_freq_list)-1)
                 
             if output_only_fixation == True:
                 # If a mutation did not go to fixation, do not store.
@@ -203,8 +211,10 @@ def fsim_genetic_drift(
     # assert len(mutant_freq_trajectories) == site_count
     # fix_num = len([mut for mut in mutant_freq_trajectories if mut[-1] == 1])
     with open(out_summ_path, 'w') as f:
+        print(f'Created by fsim package (version: {__version__})', file=f)
         print(f'total_rep_num: {site_count}', file=f)
         print(f'fixation_num: {fix_site_count}', file=f)
+        print(f'Ave generation to fixation: {np.mean(generation_to_fixation)}', file=f)
 
     # return site_count, mutant_freq_trajectories
     return site_count
