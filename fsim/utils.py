@@ -1,5 +1,6 @@
 
 import configparser
+from multiprocessing.sharedctypes import Value
 from warnings import warn
 from collections import namedtuple
 
@@ -63,12 +64,17 @@ def read_data(file_path, fix_only=True):
     setting_d = {}
     result = []
     run_count = 0
+    section = ''
     
     with open(file_path, 'r') as f:
         for l in f:
             if l.startswith('['):
                 section = cut_square_parenthesis(l[:-1])
             else:
+                if section == '':
+                    msg = f'No Setting section is found: current line {l}'
+                    raise ValueError(msg)
+                    
                 if section == 'Setting':
                     key, value = get_argument(l[:-1])
                     setting_d[key] = value
