@@ -1,3 +1,6 @@
+""" Python script that conducts forward-time simulation of genetic drift of two 
+alleles in a haploid population. 
+"""
 
 import os
 import numpy as np
