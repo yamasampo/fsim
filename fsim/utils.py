@@ -1,8 +1,8 @@
 
 import configparser
-from multiprocessing.sharedctypes import Value
+from typing import List, Union, Dict
 from warnings import warn
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 
 def read_control_file(control_file):
     # Initialize ConfigParser object
@@ -60,7 +60,7 @@ def read_control_file(control_file):
 
 SimulationResult = namedtuple('SimulationResult', ['setting', 'result', 'total_run_num'])
 
-def read_data(file_path, fix_only=True):
+def read_whole_data(file_path, fix_only=True):
     setting_d = {}
     result = []
     run_count = 0
@@ -90,6 +90,79 @@ def read_data(file_path, fix_only=True):
                         result.append(values)
                     
     return SimulationResult(setting_d, result, run_count)
+
+def yield_trajectory(file_path, fix_only=True):
+
+    with open(file_path, 'r') as f:
+        for l in f:
+            if l.startswith('['):
+                section = cut_square_parenthesis(l[:-1])
+            else:
+                if section == '':
+                    msg = f'No Setting section is found: current line {l}'
+                    raise ValueError(msg)
+                    
+                if section == 'Setting':
+                    continue
+                
+                elif section == 'Result':
+                    values = get_values(l[:-1])
+                    
+                    if fix_only:
+                        if values[-1] == 1:
+                            yield values
+                    else:
+                        yield values
+
+def get_SFS_at_given_generations(
+        file_path: str, generations: List[int], 
+        fix_only=True):
+    
+    # Initialize SFS dictionary
+    sfs_dict = {
+        gen: defaultdict(int)
+        for gen in generations
+    }
+
+    for trajectory in yield_trajectory(file_path, fix_only):
+        allele_freq_d: Dict[int: Union[float, int]] = \
+            get_allele_freq_at_multi_generations(trajectory, generations)
+
+        # TODO: Think about a good data structure for the final consequence
+        # result, time_to_result = get_simulation_result(trajectory)
+
+        for gen, freq in allele_freq_d.items():
+            sfs_dict[gen][freq] += 1
+
+    return sfs_dict
+
+def get_allele_freq_at_single_generation(
+        trajectory: List[Union[float, int]], generation: int):
+    # The first element in the trajectory represents the frequency at initial 
+    # generartion. 
+    if len(trajectory) >= generation + 1:
+        return trajectory[generation]
+    
+    return trajectory[-1]
+
+def get_allele_freq_at_multi_generations(
+        trajectory: List[Union[float, int]], 
+        generations: List[int]):
+    # The first element in the trajectory represents the frequency at initial 
+    # generartion. 
+    out = {
+        gen: get_allele_freq_at_single_generation(trajectory, gen)
+        for gen in generations
+    }
+    return out
+
+def get_simulation_result(trajectory: List[Union[float, int]]):
+    if trajectory[-1] == 0:
+        return ('removed', len(trajectory)-1)
+    elif trajectory[-1] == 1:
+        return ('fixed', len(trajectory)-1)
+    
+    raise ValueError(trajectory[-1])
 
 def cut_square_parenthesis(s):
     return s.split('[')[1].split(']')[0]
