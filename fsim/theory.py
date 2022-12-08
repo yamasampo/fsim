@@ -84,6 +84,12 @@ def time_to_fixation_diploid(init_freq, ns, s):
     return J1(init_freq, s, ns) + (1-up)/up * J2(init_freq, s, ns)
 
 def fixation_probability_haploid(init_freq, ns):
+    """ Equation (8) of Kimura (1962) was employed. 
+
+    Reference
+    ---------
+    
+    """
     if ns == 0:
         return init_freq
     
